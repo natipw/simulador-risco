@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulador de Nota de Monitoria</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+  <body class="bg-slate-50 min-h-screen">
+    <div id="root"></div>
+    <script type="text/babel">
+      // From types.ts
+      const CriterionCategory = {
+        IDCloudIDPay: "IDCloud & IDPay",
+        Insights: "Insights",
+      };
+
+      const ErrorType = {
+        Grave: "grave",
+        Moderado: "moderado",
+        Leve: "leve",
+      };
+
+      // From constants.tsx
+      const ERROR_DESCRIPTIONS = {
+        [ErrorType.Grave]: "O analista evitou falhas que causariam impacto direto na experiência do cliente final, na credibilidade do produto ou da Unico, assim como nas estratégias diretas da organização.",
+        [ErrorType.Moderado]: "O analista seguiu as melhores práticas e garantiu a consistência do processo, o que contribuiu diretamente para aprimorar o desempenho e qualidade dos indicadores estratégicos do negócio.",
+        [ErrorType.Leve]: "Os registros de evidências e justificativas estão completos, garantindo a rastreabilidade e a integridade do processo.",
+      };
+
+      const ALL_CRITERIA = [
+        { id: "idunico", title: "IDUnico", points: 100, type: ErrorType.Grave, category: CriterionCategory.IDCloudIDPay, goal: 99 },
+        { id: "idpay", title: "IDPay", points: 100, type: ErrorType.Grave, category: CriterionCategory.IDCloudIDPay, goal: 99 },
+        { id: "regras_automaticas", title: "Regras Automáticas", points: 10, type: ErrorType.Moderado, category: CriterionCategory.IDCloudIDPay, goal: 99 },
+        { id: "liveness", title: "Liveness", points: 100, type: ErrorType.Grave, category: CriterionCategory.IDCloudIDPay, goal: 99 },
+        { id: "token", title: "Token", points: 10, type: ErrorType.Moderado, category: CriterionCategory.IDCloudIDPay, goal: 99 },
+        { id: "contestacao", title: "Contestação", points: 10, type: ErrorType.Moderado, category: CriterionCategory.IDCloudIDPay, goal: 97 },
+        { id: "lgpd", title: "LGPD", points: 100, type: ErrorType.Grave, category: CriterionCategory.IDCloudIDPay, goal: 99 },
+        { id: "hipoteses", title: "Hipóteses", points: 5, type: ErrorType.Leve, category: CriterionCategory.Insights, goal: 99 },
+        { id: "idtrust", title: "IDTrust", points: 10, type: ErrorType.Moderado, category: CriterionCategory.Insights, goal: 99 },
+        { id: "base_autenticados", title: "Base de Autenticados", points: 5, type: ErrorType.Leve, category: CriterionCategory.Insights, goal: 99 },
+        { id: "iddocs", title: "IDDocs", points: 100, type: ErrorType.Grave, category: CriterionCategory.Insights, goal: 99 },
+      ];
+
+      const ICONS = {
+        [ErrorType.Grave]: <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-rose-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
+        [ErrorType.Moderado]: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-orange-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+        [ErrorType.Leve]: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      };
+
+      const TYPE_STYLES = {
+        [ErrorType.Grave]: {
+          border: "border-rose-500", text: "text-rose-600", bg: "bg-rose-50", descriptionText: "text-rose-700", input: "border-rose-200 text-rose-600 focus:ring-rose-500 focus:border-rose-500",
+        },
+        [ErrorType.Moderado]: {
+          border: "border-orange-500", text: "text-orange-600", bg: "bg-orange-50", descriptionText: "text-orange-700", input: "border-orange-200 text-orange-600 focus:ring-orange-500 focus:border-orange-500",
+        },
+        [ErrorType.Leve]: {
+          border: "border-yellow-500", text: "text-yellow-600", bg: "bg-yellow-50", descriptionText: "text-yellow-700", input: "border-yellow-200 text-yellow-600 focus:ring-yellow-500 focus:border-yellow-500",
+        },
+      };
+
+      // From components/Header.tsx
+      const Header = ({ onReset }) => (
+        <header className="text-white p-4 sm:p-5 rounded-2xl shadow-2xl bg-gradient-to-br from-indigo-600 to-purple-700 sticky top-4 z-50">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold">Simulador de Nota de Monitoria</h1>
+              <p className="text-indigo-200 mt-1">Calcule a nota por capacidade com base no total de amostras e erros.</p>
+            </div>
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <button onClick={onReset} className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors duration-200" aria-label="Reiniciar Simulação">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.691L7.98 12.01M16.023 9.348L12.01 13.37m0 0L7.98 12.01m4.03 1.36l-3.182-3.182" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </header>
+      );
+
+      // From components/ControlCard.tsx
+      const ControlCard = ({ totalSamples, onTotalSamplesChange }) => {
+        const handleChange = (e) => {
+          let value = parseInt(e.target.value, 10);
+          onTotalSamplesChange(isNaN(value) || value < 0 ? 0 : value);
+        };
+        return (
+          <div className="bg-white p-4 rounded-xl shadow-md border border-slate-200">
+            <label htmlFor="total-samples" className="block text-base font-semibold text-slate-700">Quantidade Total de Amostras (Atendimentos)</label>
+            <input type="number" id="total-samples" value={totalSamples === 0 ? "" : totalSamples} onChange={handleChange} min="0" placeholder="0" className="mt-1 w-full text-xl font-bold text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
+            <p className="mt-1.5 text-xs text-slate-500">Insira o número total de amostras (auditorias) que você está avaliando.</p>
+          </div>
+        );
+      };
+
+      // From components/CalculatorCard.tsx
+      const CalculatorCard = ({ allCriteria, selectedCriterion, onCriterionChange, errorInputs, onErrorInputChange, calculatedScore, totalSamples }) => {
+          const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+          const dropdownRef = React.useRef(null);
+          const errorTypeDetails = [
+              {type: ErrorType.Leve, label: "Erro Leve", points: 5},
+              {type: ErrorType.Moderado, label: "Erro Moderado", points: 10},
+              {type: ErrorType.Grave, label: "Erro Grave", points: 100},
+          ];
+          React.useEffect(() => {
+              const handleClickOutside = (event) => {
+                  if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setIsDropdownOpen(false);
+              };
+              document.addEventListener("mousedown", handleClickOutside);
+              return () => document.removeEventListener("mousedown", handleClickOutside);
+          }, []);
+          const isGoalMet = calculatedScore >= selectedCriterion.goal;
+          return (
+              <section className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg border border-slate-200">
+                   <div className="text-center mb-6">
+                      <label className="block text-sm font-semibold uppercase tracking-widest text-slate-500 mb-2">Capacidade de Atuação</label>
+                      <div className="relative inline-block text-left z-20" ref={dropdownRef}>
+                          <div>
+                              <button type="button" className="inline-flex justify-center items-center gap-3 w-full rounded-md px-4 py-2 bg-transparent text-sm font-medium focus:outline-none" onClick={() => setIsDropdownOpen(!isDropdownOpen)} aria-haspopup="true" aria-expanded={isDropdownOpen}>
+                                  <span className="text-xl font-bold text-indigo-600">{selectedCriterion.title}</span>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 text-indigo-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                              </button>
+                          </div>
+                          {isDropdownOpen && (
+                              <div className="origin-top absolute left-1/2 -translate-x-1/2 mt-2 w-72 rounded-xl shadow-2xl bg-slate-800/95 backdrop-blur-sm ring-1 ring-black ring-opacity-5 focus:outline-none max-h-80 overflow-y-auto" role="menu" aria-orientation="vertical">
+                                  <div className="p-2" role="none">
+                                      {allCriteria.map(c => (
+                                          <a href="#" key={c.id} className={`flex items-center justify-between w-full px-4 py-3 text-lg rounded-lg transition-colors duration-150 ${selectedCriterion.id === c.id ? 'font-bold text-white bg-indigo-600' : 'text-slate-200 hover:bg-slate-700'}`} role="menuitem" onClick={(e) => { e.preventDefault(); onCriterionChange(c.id); setIsDropdownOpen(false); }}>
+                                              <span>{c.title}</span>
+                                              {selectedCriterion.id === c.id && <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+                                          </a>
+                                      ))}
+                                  </div>
+                              </div>
+                          )}
+                      </div>
+                  </div>
+                  <div className="space-y-4">
+                       <h3 className="text-base font-semibold text-slate-800 border-b pb-2">Quantidade de Erros</h3>
+                       {errorTypeDetails.map(({type, label, points}) => {
+                          const styles = TYPE_STYLES[type];
+                          return (
+                              <div key={type} className={`p-4 rounded-xl border-l-4 ${styles.bg} ${styles.border}`}>
+                                  <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-2">
+                                      <div className="flex items-center gap-3">{ICONS[type]}<h4 className="text-lg font-bold text-slate-900">{label}</h4></div>
+                                      <div className="flex items-center gap-4">
+                                          <span className={`text-base font-semibold ${styles.text}`}>(-{points}%)</span>
+                                          <input type="number" value={errorInputs[type] === 0 ? '' : errorInputs[type]} onChange={(e) => onErrorInputChange(type, parseInt(e.target.value, 10))} min="0" max={totalSamples} placeholder="0" disabled={totalSamples === 0} aria-label={`Quantidade de ${label}`} className={`w-24 text-center font-bold text-xl bg-white border-2 rounded-lg p-1.5 focus:outline-none focus:ring-2 transition ${styles.input}`} />
+                                      </div>
+                                  </div>
+                                  <p className={`text-sm ${styles.descriptionText} mt-1.5 md:pl-8`}>{ERROR_DESCRIPTIONS[type]}</p>
+                              </div>
+                          )
+                       })}
+                  </div>
+                  <div className="border-t border-slate-200 pt-5 mt-6">
+                      <h3 className="text-base font-semibold text-slate-800 mb-3 text-center">Resultado da Simulação</h3>
+                      <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 text-center">
+                          <span className="text-sm font-medium text-slate-600">Pontuação Final</span>
+                          <p className="text-5xl font-bold text-slate-800 tracking-tighter my-1">{calculatedScore.toFixed(2)}<span className="text-3xl text-slate-400">%</span></p>
+                          <div className={`mt-3 inline-block px-3 py-1 rounded-full text-center ${isGoalMet ? 'bg-emerald-100' : 'bg-rose-100'}`}><p className={`text-base font-bold ${isGoalMet ? 'text-emerald-800' : 'text-rose-800'}`}>{isGoalMet ? 'Meta Atingida' : 'Meta Não Atingida'}</p></div>
+                          <p className="text-xs text-slate-500 mt-2">Meta de Qualidade: {selectedCriterion.goal.toFixed(2)}%</p>
+                      </div>
+                  </div>
+              </section>
+          );
+      };
+
+      // From App.tsx
+      const App = () => {
+        const [totalSamples, setTotalSamples] = React.useState(20);
+        const [selectedCriterionId, setSelectedCriterionId] = React.useState(ALL_CRITERIA[0].id);
+        const [errorInputs, setErrorInputs] = React.useState({ [ErrorType.Grave]: 0, [ErrorType.Moderado]: 0, [ErrorType.Leve]: 0 });
+        const selectedCriterion = React.useMemo(() => ALL_CRITERIA.find(c => c.id === selectedCriterionId) || ALL_CRITERIA[0], [selectedCriterionId]);
+        const calculatedScore = React.useMemo(() => {
+          if (!totalSamples || totalSamples <= 0) return 100;
+          const deductions = (errorInputs[ErrorType.Grave] * 100) + (errorInputs[ErrorType.Moderado] * 10) + (errorInputs[ErrorType.Leve] * 5);
+          const finalScore = Math.max(0, (totalSamples * 100) - deductions) / totalSamples;
+          return isNaN(finalScore) ? 100 : finalScore;
+        }, [totalSamples, errorInputs]);
+        const handleReset = React.useCallback(() => {
+          setTotalSamples(20);
+          setSelectedCriterionId(ALL_CRITERIA[0].id);
+          setErrorInputs({ [ErrorType.Grave]: 0, [ErrorType.Moderado]: 0, [ErrorType.Leve]: 0 });
+        }, []);
+        const handleCriterionChange = React.useCallback((id) => {
+          setSelectedCriterionId(id);
+          setErrorInputs({ [ErrorType.Grave]: 0, [ErrorType.Moderado]: 0, [ErrorType.Leve]: 0 });
+        }, []);
+        const handleErrorInputChange = React.useCallback((type, value) => {
+          setErrorInputs(prev => {
+              const numericValue = isNaN(value) ? 0 : value;
+              return { ...prev, [type]: Math.max(0, Math.min(numericValue, totalSamples)) }
+          });
+        }, [totalSamples]);
+        return (
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-4 sm:py-5 lg:py-6 text-slate-800">
+            <Header onReset={handleReset} />
+            <main className="mt-6 space-y-6">
+              <ControlCard totalSamples={totalSamples} onTotalSamplesChange={setTotalSamples} />
+              <CalculatorCard allCriteria={ALL_CRITERIA} selectedCriterion={selectedCriterion} onCriterionChange={handleCriterionChange} errorInputs={errorInputs} onErrorInputChange={handleErrorInputChange} calculatedScore={calculatedScore} totalSamples={totalSamples} />
+            </main>
+          </div>
+        );
+      };
+
+      // From index.tsx
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+
+    </script>
+  </body>
+</html>
