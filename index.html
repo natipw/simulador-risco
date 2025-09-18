@@ -105,9 +105,9 @@
         };
         return (
           <div className="bg-white p-4 rounded-xl shadow-md border border-slate-200">
-            <label htmlFor="total-samples" className="block text-base font-semibold text-slate-700">Quantidade Total de Amostras (Atendimentos)</label>
+            <label htmlFor="total-samples" className="block text-base font-semibold text-slate-700">Quantidade Total de Amostras </label>
             <input type="number" id="total-samples" value={totalSamples === 0 ? "" : totalSamples} onChange={handleChange} min="0" placeholder="0" className="mt-1 w-full text-xl font-bold text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
-            <p className="mt-1.5 text-xs text-slate-500">Insira o número total de amostras (auditorias) que você está avaliando.</p>
+            <p className="mt-1.5 text-xs text-slate-500">Insira o número total de amostras que você está avaliando.</p>
           </div>
         );
       };
