@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Simulador de Nota de Monitoria com IA</title>
+    <title>Simulador de Nota de Monitoria de Risco</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,8 +26,7 @@
   <body class="bg-slate-50 min-h-screen">
     <div id="root"></div>
     <script type="text/babel" data-presets="react" data-type="module">
-      import { GoogleGenAI } from 'https://esm.run/@google/genai';
-
+      
       // From types.ts
       const CriterionCategory = {
         IDCloudIDPay: "IDCloud & IDPay",
@@ -185,103 +184,6 @@
               </section>
           );
       };
-      
-      const GeminiCard = ({ selectedCriterion, calculatedScore, totalSamples, errorInputs }) => {
-        const [isLoading, setIsLoading] = React.useState(false);
-        const [analysisResult, setAnalysisResult] = React.useState('');
-        const [error, setError] = React.useState('');
-        
-        const formatResponse = (text) => {
-            return text
-                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-800">$1</strong>')
-                .replace(/^- (.*)/gm, '<li>$1</li>')
-                .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-                .replace(/\n/g, '<br />');
-        };
-        
-        const handleGenerateAnalysis = async () => {
-            if (typeof process === 'undefined' || !process.env.API_KEY) {
-                setError("A chave da API não foi configurada. Verifique as variáveis de ambiente.");
-                return;
-            }
-
-            setIsLoading(true);
-            setAnalysisResult('');
-            setError('');
-
-            try {
-                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-                
-                const prompt = `
-                    Você é um especialista em qualidade e performance de equipes de monitoria. Sua tarefa é analisar os resultados de uma simulação de nota e fornecer um feedback construtivo, profissional e encorajador em português do Brasil.
-
-                    **Dados da Simulação:**
-                    - Critério Analisado: ${selectedCriterion.title}
-                    - Total de Amostras: ${totalSamples}
-                    - Erros Graves: ${errorInputs[ErrorType.Grave]}
-                    - Erros Moderados: ${errorInputs[ErrorType.Moderado]}
-                    - Erros Leves: ${errorInputs[ErrorType.Leve]}
-                    - Pontuação Final Calculada: ${calculatedScore.toFixed(2)}%
-                    - Meta de Qualidade para este critério: ${selectedCriterion.goal}%
-
-                    **Instruções para a Resposta:**
-                    Com base nos dados, gere uma análise com os seguintes pontos, usando markdown para formatação:
-                    1.  **Resumo do Desempenho:** Inicie com um parágrafo amigável resumindo o desempenho geral (excelente, bom, precisa de atenção, etc.) em relação à meta.
-                    2.  **Pontos de Destaque:** Se a meta foi atingida ou os erros são baixos, destaque isso como um ponto forte.
-                    3.  **Pontos de Melhoria:** Identifique qual tipo de erro (Grave, Moderado, Leve) teve maior impacto, se houver.
-                    4.  **Plano de Ação:** Ofereça 1 ou 2 dicas práticas e acionáveis para melhorar ou manter o resultado.
-                    
-                    Mantenha a linguagem positiva. Formate os títulos dos tópicos em negrito (ex: **Pontos de Destaque:**) e use listas com hífens para o plano de ação.
-                `;
-
-                const response = await ai.models.generateContent({
-                  model: 'gemini-2.5-flash',
-                  contents: prompt,
-                });
-                
-                setAnalysisResult(response.text);
-
-            } catch (e) {
-                console.error(e);
-                setError("Não foi possível gerar a análise. Tente novamente mais tarde.");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        
-        return (
-            <section className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg border border-slate-200">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-800">Análise de Performance com IA</h2>
-                            <p className="text-sm text-slate-500">Receba feedback e dicas do Gemini para melhorar seus resultados.</p>
-                        </div>
-                    </div>
-                    <button 
-                        onClick={handleGenerateAnalysis} 
-                        disabled={isLoading || totalSamples === 0}
-                        className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-indigo-500/30">
-                        {isLoading ? (
-                            <><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Analisando...</>
-                        ) : 'Gerar Análise'}
-                    </button>
-                </div>
-                
-                {(analysisResult || error || isLoading) && (
-                    <div className="mt-6 border-t border-slate-200 pt-5">
-                        {isLoading && <p className="text-center text-slate-500">Aguarde enquanto a IA analisa os dados...</p>}
-                        {error && <div className="bg-rose-100 border-l-4 border-rose-500 text-rose-700 p-4 rounded-r-lg" role="alert"><p className="font-bold">Ocorreu um erro</p><p>{error}</p></div>}
-                        {analysisResult && <div className="prose prose-slate max-w-none text-slate-600" dangerouslySetInnerHTML={{ __html: formatResponse(analysisResult) }} />}
-                    </div>
-                )}
-            </section>
-        );
-      };
-
 
       // From App.tsx
       const App = () => {
@@ -295,7 +197,7 @@
           const finalScore = Math.max(0, (totalSamples * 100) - deductions) / totalSamples;
           return isNaN(finalScore) ? 100 : finalScore;
         }, [totalSamples, errorInputs]);
-        const handleReset = React.useCallback(() => {
+        const handleReset = React. useCallback(() => {
           setTotalSamples(20);
           setSelectedCriterionId(ALL_CRITERIA[0].id);
           setErrorInputs({ [ErrorType.Grave]: 0, [ErrorType.Moderado]: 0, [ErrorType.Leve]: 0 });
@@ -316,7 +218,6 @@
             <main className="mt-6 space-y-6">
               <ControlCard totalSamples={totalSamples} onTotalSamplesChange={setTotalSamples} />
               <CalculatorCard allCriteria={ALL_CRITERIA} selectedCriterion={selectedCriterion} onCriterionChange={handleCriterionChange} errorInputs={errorInputs} onErrorInputChange={handleErrorInputChange} calculatedScore={calculatedScore} totalSamples={totalSamples} />
-               <GeminiCard selectedCriterion={selectedCriterion} calculatedScore={calculatedScore} totalSamples={totalSamples} errorInputs={errorInputs} />
             </main>
           </div>
         );
